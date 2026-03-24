@@ -1,0 +1,1 @@
+As IoT ecosystems expand, they face a double challenge: escalating security threats and a massive carbon footprint. This project aims to prove that high-scale connectivity doesn't have to compromise the planet or data privacy. I build infrastructures that are Secure by Design and Green by Default.
