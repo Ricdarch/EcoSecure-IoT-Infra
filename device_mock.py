@@ -12,5 +12,5 @@ class SmartPlug:
         self.idle_time = idle_time
 
     def generate_data(self):
-        pass
+        self.plug_time = random.uniform(min, max)
     
