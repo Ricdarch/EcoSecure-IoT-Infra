@@ -1,0 +1,25 @@
+{
+  "devices": [
+    {
+      "id": 1,
+      "location": "Kitchen",
+      "target_device": "Fridge",
+      "nominal_power": 150,
+      "max_power": 500
+    },
+    {
+      "id": 2,
+      "location": "Bedroom",
+      "target_device": "Bedside Lamp",
+      "nominal_power": 30,
+      "max_power": 100
+    },
+    {
+      "id": 3,
+      "location": "Garage",
+      "target_device": "Electric Saw",
+      "nominal_power": 1200,
+      "max_power": 1500
+    }
+  ]
+}
