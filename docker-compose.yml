@@ -1,0 +1,21 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mosquitto_broker
+    ports:
+      - "8883:8883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./passwd:/mosquitto/config/passwd
+      - ./certs:/mosquitto/config/certs
+
+  mock-pdu:
+    build: .
+    container_name: pdu_simulator
+    depends_on:
+      - mosquitto
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_TOKEN=${MQTT_TOKEN}
+      - MQTT_PORT=8883
+      - CONFIG_FILE=devices_config.json

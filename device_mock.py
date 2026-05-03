@@ -3,11 +3,12 @@ import random
 import time
 import json
 import os
+import ssl
 import paho.mqtt.client as mqtt
 
 class SmartPDU:
     def __init__(self, device_config):
-        # Configuration mapping from JSON
+        # Mapping de la configuration JSON
         self.id = device_config["id"]
         self.location = device_config["location"]
         self.name = device_config["target_device"]
@@ -18,7 +19,7 @@ class SmartPDU:
         self.max_p = device_config["max_power"]
         self.nom_t = device_config["nominal_temp"]
 
-        # Internal state initialization
+        # État interne
         self.is_connected = True
         self.is_under_attack = False
         self.current_power = self.nom_p
@@ -27,48 +28,40 @@ class SmartPDU:
         self.last_update = time.time()
 
     def simulate_behavior(self):
-        """Simulates physical and network behavior of the PDU"""
-        
-        # --- Network Stability Simulation ---
+        """Simule le comportement physique et réseau du PDU"""
         if not self.is_connected:
-            # 1% chance to recover connection
-            if random.random() < 0.01:
+            if random.random() < 0.01: # 1% de chance de reconnexion
                 self.is_connected = True
             self.current_power = 0
             return
 
-        # 0.1% chance of random network drop
-        if random.random() < 0.001:
+        if random.random() < 0.001: # Chute réseau aléatoire
             self.is_connected = False
             return
 
-        # --- Power Consumption Simulation (kW) ---
-        # 1% chance to trigger an anomaly/attack state
+        # Simulation d'anomalie/attaque (1% de chance)
         if random.random() < 0.01:
             self.is_under_attack = not self.is_under_attack
 
         if self.is_under_attack:
-            # Cyber-attack signature: High power draw near or above safety threshold
-            # Simulates DDoS (CPU stress) or Crypto-jacking
+            # Signature d'attaque : Consommation proche du seuil critique
             self.current_power = random.uniform(self.safety * 0.9, self.max_p * 1.1)
         else:
-            # Normal behavior: Small fluctuations based on workload type
+            # Fluctuations normales selon le workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
             self.current_power = self.nom_p + random.uniform(-variation, variation)
 
-        # --- Thermal Simulation ---
-        # Temperature follows power draw with simulated thermal inertia
+        # Simulation thermique (Inertie)
         temp_target = self.nom_t + (self.current_power * 2) 
         self.current_temp += (temp_target - self.current_temp) * 0.1
 
-        # --- Energy Accumulation (kWh) ---
+        # Accumulation énergie
         now = time.time()
-        interval = (now - self.last_update) / 3600  # Convert seconds to hours
+        interval = (now - self.last_update) / 3600
         self.total_energy_kwh += self.current_power * interval
         self.last_update = now
 
     def get_payload(self):
-        """Constructs the JSON payload for MQTT publishing"""
         return {
             "id": self.id,
             "device": self.name,
@@ -85,15 +78,37 @@ class SmartPDU:
             }
         }
 
-
+# --- CONFIGURATION ENVIRONNEMENT ---
 MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
-MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
+MQTT_TOKEN = os.getenv("MQTT_TOKEN", "my_secure_token")
 CONFIG_FILE = os.getenv("CONFIG_FILE", "devices_config.json")
 
-client = mqtt.Client()
+# Initialisation Client MQTT
+# Utilisation de la version de l'API de rappel la plus stable
+client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
 
 def run():
-    # Attempt to connect to the Broker
+    # 1. Configuration de l'Authentification
+    client.username_pw_set("token_app", MQTT_TOKEN)
+
+    # 2. Configuration du Testament (LWT)
+    lwt_payload = json.dumps({"status": "OFFLINE", "msg": "Simulator crash"})
+    client.will_set("datacenter/status/simulator", lwt_payload, qos=1, retain=True)
+
+    # 3. Configuration TLS (Sécurité)
+    try:
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile="./certs/ca.crt")
+        # On autorise les certificats auto-signés pour le dev local
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE 
+        
+        client.tls_set_context(context)
+    except Exception as e:
+        print(f"Erreur config TLS: {e}")
+        return
+
+    # Connexion
     try:
         client.connect(MQTT_BROKER, MQTT_PORT, 60)
         client.loop_start()
@@ -101,31 +116,28 @@ def run():
         print(f"Failed to connect to broker: {e}")
         return
 
-    # Load infrastructure configuration
+    # Chargement Config
     try:
         with open(CONFIG_FILE, "r") as f:
             config_data = json.load(f)
-    except FileNotFoundError:
-        print(f"Config file {CONFIG_FILE} not found!")
+    except Exception as e:
+        print(f"Erreur lecture config: {e}")
         return
     
-    # Initialize PDU objects
     pdus = [SmartPDU(d) for d in config_data["devices"]]
-
-    print(f"IoT Simulation started. Connected to Broker: {MQTT_BROKER}")
+    print(f"🚀 IoT Simulation started. Connected to Broker: {MQTT_BROKER} on port {MQTT_PORT}")
 
     try:
         while True:
             for pdu in pdus:
                 pdu.simulate_behavior()
                 
-                # Dynamic topic structure: datacenter/rack_id/pdu_id/metrics
                 topic = f"datacenter/{pdu.location.lower()}/{pdu.name.lower()}/metrics"
                 payload = json.dumps(pdu.get_payload())
                 
                 client.publish(topic, payload)
                 
-            time.sleep(1) # 1Hz Refresh rate
+            time.sleep(1)
     except KeyboardInterrupt:
         print("\nStopping simulator...")
     finally:

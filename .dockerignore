@@ -1,0 +1,14 @@
+# Git files
+.git
+.gitignore
+
+# Secret
+
+.env
+passwd
+certs/*.key
+certs/*.csr
+certs/*.srl
+
+# Python files
+mqtt/
