@@ -20,7 +20,6 @@ class SmartPDU:
         self.max_p = device_config["max_power"]
         self.nom_t = device_config["nominal_temp"]
 
-
         # État interne
         self.is_connected = True
         self.is_under_attack = False
@@ -47,14 +46,18 @@ class SmartPDU:
 
         if self.is_under_attack:
             # Signature d'attaque : Consommation proche du seuil critique
-            self.current_power = random.uniform(self.safety * 0.9, self.max_p * 1.1)
+            self.current_power = random.uniform(
+                self.safety * 0.9, self.max_p * 1.1
+            )
         else:
             # Fluctuations normales selon le workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
-            self.current_power = self.nom_p + random.uniform(-variation, variation)
+            self.current_power = self.nom_p + random.uniform(
+                -variation, variation
+            )
 
         # Simulation thermique (Inertie)
-        temp_target = self.nom_t + (self.current_power * 2) 
+        temp_target = self.nom_t + (self.current_power * 2)
         self.current_temp += (temp_target - self.current_temp) * 0.1
 
         # Accumulation énergie
@@ -80,6 +83,7 @@ class SmartPDU:
             }
         }
 
+
 # --- CONFIGURATION ENVIRONNEMENT ---
 MQTT_BROKER = os.getenv("MQTT_BROKER")
 MQTT_PORT = int(os.getenv("MQTT_PORT"))
@@ -87,8 +91,8 @@ MQTT_TOKEN = os.getenv("MQTT_TOKEN")
 CONFIG_FILE = os.getenv("CONFIG_FILE")
 
 # Initialisation Client MQTT
-# Utilisation de la version de l'API de rappel la plus stable
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
 
 def run():
     # 1. Configuration de l'Authentification
@@ -96,14 +100,18 @@ def run():
 
     # 2. Configuration du Testament (LWT)
     lwt_payload = json.dumps({"status": "OFFLINE", "msg": "Simulator crash"})
-    client.will_set("datacenter/status/simulator", lwt_payload, qos=1, retain=True)
+    client.will_set(
+        "datacenter/status/simulator", lwt_payload, qos=1, retain=True
+    )
 
     # 3. Configuration TLS (Sécurité)
     try:
         cert_path = "/app/certs/ca.crt"
-        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cert_path)
+        context = ssl.create_default_context(
+            ssl.Purpose.SERVER_AUTH, cafile=cert_path
+        )
         context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE 
+        context.verify_mode = ssl.CERT_NONE
 
         client.tls_set_context(context)
         print("✅ Configuration TLS chargée avec succès.")
@@ -128,16 +136,18 @@ def run():
         return
 
     pdus = [SmartPDU(d) for d in config_data["devices"]]
-    print(f"🚀 IoT Simulation started.Connected to Broker: {MQTT_BROKER} on port {MQTT_PORT}")
+    print(f"🚀 IoT Simulation started. Connected to: {MQTT_BROKER}")
 
     try:
         while True:
             for pdu in pdus:
                 pdu.simulate_behavior()
-                
-                topic = f"datacenter/{pdu.location.lower()}/{pdu.name.lower()}/metrics"
+
+                loc = pdu.location.lower()
+                name = pdu.name.lower()
+                topic = f"datacenter/{loc}/{name}/metrics"
                 payload = json.dumps(pdu.get_payload())
-                
+
                 client.publish(topic, payload)
 
             time.sleep(1)
@@ -150,5 +160,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-
