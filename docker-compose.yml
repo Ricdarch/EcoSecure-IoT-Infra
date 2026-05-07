@@ -10,12 +10,17 @@ services:
       - ./certs:/mosquitto/config/certs
 
   mock-pdu:
-    build: .
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    volumes:
+      - ./certs:/app/certs:ro
+      - ./devices_config.json:/app/devices_config.json:ro
     container_name: pdu_simulator
     depends_on:
       - mosquitto
     environment:
-      - MQTT_BROKER=mosquitto
+      - MQTT_BROKER=${MQTT_BROKER}
       - MQTT_TOKEN=${MQTT_TOKEN}
-      - MQTT_PORT=8883
-      - CONFIG_FILE=devices_config.json
+      - MQTT_PORT=${MQTT_PORT}
+      - CONFIG_FILE=${CONFIG_FILE}

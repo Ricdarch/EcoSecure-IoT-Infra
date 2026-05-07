@@ -32,12 +32,12 @@ class SmartPDU:
     def simulate_behavior(self):
         """Simule le comportement physique et réseau du PDU"""
         if not self.is_connected:
-            if random.random() < 0.01: # 1% de chance de reconnexion
+            if random.random() < 0.01:  # 1% de chance de reconnexion
                 self.is_connected = True
             self.current_power = 0
             return
 
-        if random.random() < 0.001: # Chute réseau aléatoire
+        if random.random() < 0.001:  # Chute réseau aléatoire
             self.is_connected = False
             return
 
@@ -104,7 +104,7 @@ def run():
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cert_path)
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE 
-        
+
         client.tls_set_context(context)
         print("✅ Configuration TLS chargée avec succès.")
     except Exception as e:
@@ -126,9 +126,9 @@ def run():
     except Exception as e:
         print(f"Erreur lecture config: {e}")
         return
-    
+
     pdus = [SmartPDU(d) for d in config_data["devices"]]
-    print(f"🚀 IoT Simulation started. Connected to Broker: {MQTT_BROKER} on port {MQTT_PORT}")
+    print(f"🚀 IoT Simulation started.Connected to Broker: {MQTT_BROKER} on port {MQTT_PORT}")
 
     try:
         while True:
@@ -139,7 +139,7 @@ def run():
                 payload = json.dumps(pdu.get_payload())
                 
                 client.publish(topic, payload)
-                
+
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nStopping simulator...")
@@ -147,5 +147,8 @@ def run():
         client.loop_stop()
         client.disconnect()
 
+
 if __name__ == "__main__":
     run()
+
+
