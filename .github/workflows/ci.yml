@@ -1,0 +1,36 @@
+# .github/workflows/ci.yml
+
+name: CI pipeline
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    Check:
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: Lint + Tests
+              run: |
+                pip install flake8
+                flake8 .
+
+    Build:
+        needs: Check
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build image from Dockerfile
+              run: docker build -t mon-app ./publisher
+
+            - name: Trivy for vulnerabilities scan
+              uses: aquasecurity/trivy-action@v0.36.0
+              with:
+                image-ref: 'mon-app:latest'
+                format: 'table'
+                exit-code: '1'
+                severity: 'CRITICAL,HIGH'
+
