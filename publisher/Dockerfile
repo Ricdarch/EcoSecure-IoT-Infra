@@ -1,10 +1,8 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 WORKDIR /app
 
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends bash \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache bash
 
 COPY requirements.txt .
 
