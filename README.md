@@ -1,30 +1,18 @@
-# EcoSecure-IoT-Infra (R&D)
+# 🌐 EcoSecure-IoT-Infra (R&D)
 
-Core Vision: Build a secure Edge-to-Cloud gateway that acts as an intelligent filter for IoT telemetry.
+> An end-to-end EcoSecure IoT Infra for Smart Home simulating real IoT environments, processing data locally at the edge, and syncing filtered insights to the cloud.
 
-📊 Data Classification Logic (The "Green" Engine)
-The Edge layer classifies incoming MQTT messages into 5 categories to optimize cloud storage and energy:
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue?logo=githubactions)](https://github.com/features/actions)
+[![Orchestration](https://img.shields.io/badge/Orchestration-K3s-yellow?logo=kubernetes)](https://k3s.io/)
+[![Cloud](https://img.shields.io/badge/Cloud-AWS-orange?logo=amazonaws)](https://aws.amazon.com/)
+[![IaC](https://img.shields.io/badge/IaC-Terraform%20%2B%20Ansible-purple?logo=terraform)](https://www.terraform.io/)
+[![License|82](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-Valid: Standard data -> Forward to Cloud.
+## 🎯 Overview
 
-Incomplete but Useful: Degraded data (due to connectivity issues) -> Process & Forward.
+**EcoSecure-IoT Infra** is a full-stack IoT infrastructure project that demonstrates how to build a production-grade edge computing platform from scratch.
 
-Anomaly (Observational): Strange patterns -> Flag for monitoring.
+The platform simulates a real-world environments:
+- 🏢 **Power Distribution Unit** — device used to control the power supply to a data center
 
-Useless: Redundant/Noise -> Ignore (Zero Cloud cost).
-
-Dangerous: Malformed/Threats -> Reject & Alert (Security).
-
-🛡️ Security Roadmap
-Authentication: Mutual TLS (mTLS) for device-to-broker trust.
-
-Resilience: "Last Will and Testament" (LWT) to handle unexpected device disconnections.
-
-🛠️ Current Status
-[ ] Build Basic Device Mock (Random sensor data).
-
-[ ] Setup MQTT Broker (Mosquitto/EMQX).
-
-[ ] Implement Edge Filtering Logic (The 5-tier classifier).
-
-[ ] Hardening: mTLS & LWT.
+Data is processed **locally at the edge** using intelligent filtering rules before only the relevant insights are forwarded to the cloud. This approach reduces bandwidth consumption, cuts cloud costs, enables real-time local decisions, and ensures the system keeps working even without internet connectivity.
