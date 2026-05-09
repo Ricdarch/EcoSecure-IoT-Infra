@@ -1,3 +1,9 @@
+# Journey EcoSecure IoT Infrastructure
+
+## English version
+
+## French version 
+
 ### Naissance du projet
 
 L'idée de concevoir ce projet m'es venu lors de ma dernière année d'école d'ingénieur car je voulais construire quelques chose qui touche à l'IoT et l'edge computing. J'ai beaucoup apprécier ces deux domaines lors d'un cours à l'école et j'ai directement voulu en apprendre d'avantage.
