@@ -9,7 +9,6 @@ import paho.mqtt.client as mqtt
 
 class SmartPDU:
     def __init__(self, device_config):
-        # Mapping de la configuration JSON
         self.id = device_config["id"]
         self.location = device_config["location"]
         self.name = device_config["target_device"]
@@ -20,7 +19,6 @@ class SmartPDU:
         self.max_p = device_config["max_power"]
         self.nom_t = device_config["nominal_temp"]
 
-        # État interne
         self.is_connected = True
         self.is_under_attack = False
         self.current_power = self.nom_p
