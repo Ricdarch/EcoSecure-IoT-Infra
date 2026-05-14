@@ -4,9 +4,9 @@ name: CI pipeline
 
 on:
     push:
-        branches: [main]
+        branches: [all]
     pull_request:
-        branches: [main]
+        branches: [all]
 
 jobs:
     Check:
