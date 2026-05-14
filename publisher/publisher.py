@@ -89,6 +89,7 @@ MQTT_BROKER = os.getenv("MQTT_BROKER")
 MQTT_PORT = int(os.getenv("MQTT_PORT"))
 MQTT_TOKEN = os.getenv("MQTT_TOKEN")
 CONFIG_FILE = os.getenv("CONFIG_FILE")
+CERT_PATH = os.getenv("CERT_PATH")
 
 # Initialisation Client MQTT
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -106,7 +107,7 @@ def run():
 
     # 3. Configuration TLS (Sécurité)
     try:
-        cert_path = "/app/certs/ca.crt"
+        cert_path = CERT_PATH
         context = ssl.create_default_context(
             ssl.Purpose.SERVER_AUTH, cafile=cert_path
         )
