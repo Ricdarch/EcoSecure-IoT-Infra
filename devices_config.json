@@ -1,55 +1,75 @@
 {
   "datacenter_metadata": {
-    "project": "High-Availability-Infrastructure",
+    "site": "Paris-South-01",
     "pdu_type": "Smart-PDU-32A",
-    "power_unit": "kW"
+    "unit": "kW"
   },
-  "sites": [
+  "devices": [
     {
-      "site_name": "Paris-South-01",
-      "az_id": "az-1",
-      "ambient_target_temp": 21.0,
-      "devices": [
-        {
-          "id": "PDU-AZ1-01",
-          "location": "Rack01",
-          "role": "primary",
-          "workload_type": "WEB_FRONTEND",
-          "nominal_power_kw": 4.5,
-          "critical_temp_threshold": 80.0
-        },
-        {
-          "id": "PDU-AZ1-02",
-          "location": "Rack02",
-          "role": "primary",
-          "workload_type": "DATABASE_NODE",
-          "nominal_power_kw": 4.8,
-          "critical_temp_threshold": 80.0
-        }
-      ]
+      "id": 1,
+      "location": "Rack01",
+      "target_device": "PDU01",
+      "workload_type": "WEB_FRONTEND",
+      "min_power": 2.1,
+      "nominal_power": 4.5,
+      "safety_threshold": 6.2,
+      "max_power": 7.3,
+      "nominal_temp": 24.5
     },
     {
-      "site_name": "Paris-North-01",
-      "az_id": "az-2",
-      "ambient_target_temp": 23.0,
-      "devices": [
-        {
-          "id": "PDU-AZ2-01",
-          "location": "Rack01",
-          "role": "backup",
-          "workload_type": "WEB_FRONTEND_DRP",
-          "nominal_power_kw": 4.5,
-          "critical_temp_threshold": 80.0
-        },
-        {
-          "id": "PDU-AZ2-02",
-          "location": "Rack02",
-          "role": "backup",
-          "workload_type": "DATABASE_DRP",
-          "nominal_power_kw": 4.8,
-          "critical_temp_threshold": 80.0
-        }
-      ]
+      "id": 2,
+      "location": "Rack01",
+      "target_device": "PDU02",
+      "workload_type": "DATABASE_NODE",
+      "min_power": 3.2,
+      "nominal_power": 4.8,
+      "safety_threshold": 6.5,
+      "max_power": 7.3,
+      "nominal_temp": 26.0
+    },
+    {
+      "id": 3,
+      "location": "Rack02",
+      "target_device": "PDU03",
+      "workload_type": "AI_TRAINING_GPU",
+      "min_power": 1.5,
+      "nominal_power": 5.2,
+      "safety_threshold": 6.8,
+      "max_power": 7.3,
+      "nominal_temp": 32.0
+    },
+    {
+      "id": 4,
+      "location": "Rack02",
+      "target_device": "PDU04",
+      "workload_type": "STORAGE_SAN",
+      "min_power": 4.0,
+      "nominal_power": 4.5,
+      "safety_threshold": 5.8,
+      "max_power": 7.3,
+      "nominal_temp": 25.0
+    },
+    {
+      "id": 5,
+      "location": "Rack03",
+      "target_device": "PDU05",
+      "workload_type": "FIREWALL_CORE",
+      "min_power": 3.0,
+      "nominal_power": 3.5,
+      "safety_threshold": 5.0,
+      "max_power": 7.3,
+      "nominal_temp": 22.0
+    },
+    {
+      "id": 6,
+      "location": "Rack03",
+      "target_device": "PDU06",
+      "workload_type": "BACKUP_SERVER",
+      "min_power": 1.0,
+      "nominal_power": 4.0,
+      "safety_threshold": 6.0,
+      "max_power": 7.3,
+      "nominal_temp": 23.5
     }
   ]
 }
