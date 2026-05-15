@@ -47,11 +47,11 @@ def on_message(client, userdata, msg):
 
         # 3. Action de l'Edge
         if is_urgent:
-            print(f"🚨 [ALERTE CLOUD POTENTIELLE] PDU: {device_id} | Raisons: {reasons}")
+            print(f"[ALERTE CLOUD POTENTIELLE] PDU: {device_id} | Raisons: {reasons}")
             # Plus tard, ici tu mettras : cloud_client.publish(...)
         else:
-            # On simule le fait que l'Edge "garde pour lui" les données normales
-            print(f"ℹ️ [LOG LOCAL] {device_id}: Temp={metrics['temp_c']}°C - OK")
+            # L'edge garde les données normales
+            print(f"[LOG LOCAL] {device_id}: Temp={metrics['temp_c']}°C - OK")
 
     except Exception as e:
         print(f"⚠️ Erreur analyse message : {e}")
