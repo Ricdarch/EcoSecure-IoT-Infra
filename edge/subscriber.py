@@ -11,7 +11,8 @@ CERT_PATH = os.getenv("CERT_PATH")
 
 # Seuils de décision (Logique Edge)
 TEMP_CRITIQUE = 45.0  # On alerte si > 45°C
-POWER_THRESHOLD = 0.8 # On alerte si la conso varie brusquement
+POWER_THRESHOLD = 0.8  # On alerte si la conso varie brusquement
+
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
@@ -20,6 +21,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         client.subscribe("datacenter/#")
     else:
         print(f"❌ Erreur de connexion : {reason_code}")
+
 
 def on_message(client, userdata, msg):
     try:
@@ -53,6 +55,7 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
         print(f"⚠️ Erreur analyse message : {e}")
+
 
 # --- INITIALISATION ---
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
