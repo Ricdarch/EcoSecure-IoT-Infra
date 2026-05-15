@@ -47,7 +47,9 @@ def on_message(client, userdata, msg):
 
         # 3. Action de l'Edge
         if is_urgent:
-            print(f"[ALERTE CLOUD POTENTIELLE] PDU: {device_id} | Raisons: {reasons}")
+            print(
+                f"[ALERTE CLOUD POTENTIELLE] PDU: {device_id} | "
+                f"Raisons: {reasons}")
             # Plus tard, ici tu mettras : cloud_client.publish(...)
         else:
             # L'edge garde les données normales
