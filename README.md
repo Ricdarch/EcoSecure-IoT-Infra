@@ -8,6 +8,22 @@
 [![IaC](https://img.shields.io/badge/IaC-Terraform%20%2B%20Ansible-purple?logo=terraform)](https://www.terraform.io/)
 [![License|82](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+## 📖 Table of Contents
+
+- [Overview](#-overview)
+- [Why Edge Computing?](#-why-edge-computing)
+- [Architecture](#-architecture)
+- [Use Cases](#-use-cases)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Modules](#-modules)
+- [Getting Started](#-getting-started)
+- [CI/CD Pipeline](#-cicd-pipeline)
+- [Observability](#-observability)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ## 🎯 Overview
 
 **EcoSecure-IoT Infra** is a full-stack IoT infrastructure project that demonstrates how to build a production-grade edge computing platform from scratch.
