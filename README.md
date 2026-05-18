@@ -51,3 +51,7 @@ Traditional IoT architectures send all raw data to the cloud for processing. Thi
 With thousands of sensors running 24/7 in a factory or across a smart home fleet, the difference is massive — both in performance and operating cost.
 
 ---
+
+## 🏗️ Architecture
+
+### High-Level Overview
