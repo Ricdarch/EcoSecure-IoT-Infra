@@ -32,3 +32,22 @@ The platform simulates a real-world environments:
 - 🏢 **Power Distribution Unit** — device used to control the power supply to a data center
 
 Data is processed **locally at the edge** using intelligent filtering rules before only the relevant insights are forwarded to the cloud. This approach reduces bandwidth consumption, cuts cloud costs, enables real-time local decisions, and ensures the system keeps working even without internet connectivity.
+
+---
+
+## 💡 Why Edge Computing?
+
+Traditional IoT architectures send all raw data to the cloud for processing. This creates several problems at scale:
+
+| Problem | Cloud-only | Edge Computing |
+|---|---|---|
+| **Latency** | 100–500ms round trip | <5ms local processing |
+| **Bandwidth** | All raw data uploaded | Only filtered data sent |
+| **Cost** | High cloud ingestion fees | Drastically reduced |
+| **Resilience** | Offline = no processing | Works without internet |
+| **Privacy** | All data leaves the site | Sensitive data stays local |
+| **Real-time alerts** | Delayed by cloud roundtrip | Instant local triggering |
+
+With thousands of sensors running 24/7 in a factory or across a smart home fleet, the difference is massive — both in performance and operating cost.
+
+---
