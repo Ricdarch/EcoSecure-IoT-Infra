@@ -3,9 +3,12 @@
 passwd
 
 # Certificats
-certs/*.key
-certs/*.srl
-certs/*.csr
+certs/
+*.crt
+*.key
+*.pem
+*.csr
+*.srl
 
 # Python
 mqtt/
