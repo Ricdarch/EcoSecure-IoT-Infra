@@ -79,7 +79,7 @@ try:
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
     client.loop_forever()
 except KeyboardInterrupt:
-    logging.info("Arrêt de l'Edge Gateway.")
+    logging.info("Stopping Edge Gateway.")
 finally:
     client.loop_stop()
     client.disconnect()
