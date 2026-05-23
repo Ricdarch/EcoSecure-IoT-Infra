@@ -3,7 +3,6 @@
 .gitignore
 
 # Secret
-
 .env
 passwd
 certs/*.key
@@ -12,3 +11,10 @@ certs/*.srl
 
 # Python files
 mqtt/
+
+# Docs
+docs/
+*.md
+
+# CI
+.github/
