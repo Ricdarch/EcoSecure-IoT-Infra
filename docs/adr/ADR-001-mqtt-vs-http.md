@@ -1,26 +1,24 @@
-# ADR-001 — Choix de MQTT plutôt que HTTP
+# ADR-001 — Choosing MQTT over HTTP
 
-## Contexte
-Je devais choisir un protocole de communication entre les devices simulés et le broker.
+## Context
+I had to choose a communication protocol between the mock publisher, the broker, and the subscriber.
 
-## Options considérées
-- HTTP REST — simple mais trop verbeux pour l'IoT
-- WebSocket — bidirectionnel mais complexe à gérer
-- MQTT — léger, publish/subscribe, standard IoT
+## Options Considered
+- HTTP REST — simple but too verbose for IoT
+- WebSocket — bidirectional but complex to manage
+- MQTT — lightweight, publish/subscribe, IoT standard
 
-## Décision
-MQTT via Mosquitto, puis migration prévue vers AWS IoT Core.
+## Decision
+I decided to choose the MQTT protocol.
 
-## Raisons
-- Protocole standard de l'industrie IoT
-- Léger — idéal pour des devices à ressources limitées
-- Le modèle pub/sub permet de brancher facilement 
-  de nouveaux composants sans modifier les existants
+## Reasons
+- Industry-standard IoT protocol
+- Lightweight — ideal for devices with limited resources
+- The pub/sub model makes it easy to connect 
+  new components without modifying existing ones
 
-## Conséquences
-- Nécessite un broker (Mosquitto conteneurisé)
-- TLS à configurer manuellement (erreur rencontrée 
-  sur les chemins dans Docker — voir ADR-003)
+## Consequences
+- Requires a broker (containerized Mosquitto)
 
 ## Statut
-✅ Implémenté
+✅ Implemented

@@ -1,24 +1,24 @@
-# ADR-002 — Suppression de l'API entre le publisher et le broker
+# ADR-002 — Removal of the API between the publisher and the broker
 
-## Contexte
-Dans la conception initiale, j'envisageais une API REST entre le mock publisher et le broker MQTT pour contrôler la communication entre les deux.
+## Context
+In the initial design, I envisioned a REST API between the mock publisher and the MQTT broker to manage communication between the two.
 
-## Idée initiale
-Publisher → API REST → Broker MQTT
+## Initial Idea
+Publisher → REST API → MQTT Broker
 
-## Pourquoi j'ai abandonné cette idée
-En analysant le rôle de chaque composant, j'ai réalisé que MQTT est lui-même un protocole de communication ajouter une API entre les deux revenait à dupliquer cette responsabilité inutilement.
+## Why I abandoned this idea
+As I analyzed the role of each component, I realized that MQTT is itself a communication protocol; adding an API between the two would have amounted to unnecessarily duplicating that responsibility.
 
-L'API aurait introduit :
-- Une latence supplémentaire
-- Un point de défaillance de plus
-- Une complexité sans valeur ajoutée
+The API would have introduced:
+- Additional latency
+- Another point of failure
+- Complexity with no added value
 
-## Décision finale
-Publisher → MQTT direct → Broker
+## Final Decision
+Publisher → Direct MQTT → Broker
 
-## Ce que ça m'a appris
-Un bon système distribué minimise les intermédiaires inutiles. Chaque composant doit avoir une responsabilité claire et unique (principe de responsabilité unique).
+## What I Learned
+A good distributed system minimizes unnecessary intermediaries. Each component must have a clear and single responsibility (Single Responsibility Principle).
 
-## Statut
-✅ Décision validée et implémentée
+## Status
+✅ Decision approved and implemented
