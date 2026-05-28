@@ -5,11 +5,11 @@ import json
 import os
 import ssl
 import logging
-import dataclasses
+from dataclasses import dataclass, field
 import paho.mqtt.client as mqtt
 
 
-@dataclasses
+@dataclass
 class SmartPDU:
     id: int
     location: str
@@ -24,10 +24,14 @@ class SmartPDU:
     # Internal state
     is_connected: bool = True
     is_under_attack: bool = False
-    current_power: float = nominal_power
-    current_temp: float = nominal_temp
+    current_power: float = field(init=False)
+    current_temp: float = field(init=False)
     total_energy_kwh: float = 0.0
-    last_update: float = time.time()
+    last_update: float = field(defaut_factory=time.time)
+
+    def __post_init__(self):
+        self.current_power = self.nominal_power
+        self.current_temp = self.nominal_temp
 
     def simulate_behavior(self):
         """Simulates the physical and network behavior of the PDU"""
@@ -47,7 +51,8 @@ class SmartPDU:
 
         if self.is_under_attack:
             # Attack signature: Power consumption near the critical threshold
-            self.current_power = random.uniform(self.safety_threshold * 0.9, self.maximal_power * 1.1)
+            self.current_power = random.uniform(self.safety_threshold * 
+            0.9, self.maximal_power * 1.1)
         else:
             # Normal fluctuations depending on the workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
