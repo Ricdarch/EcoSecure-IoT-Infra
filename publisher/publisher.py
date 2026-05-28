@@ -47,15 +47,11 @@ class SmartPDU:
 
         if self.is_under_attack:
             # Attack signature: Power consumption near the critical threshold
-            self.current_power = random.uniform(
-                self.safety * 0.9, self.max_p * 1.1
-            )
+            self.current_power = random.uniform(self.safety * 0.9, self.max_p * 1.1)
         else:
             # Normal fluctuations depending on the workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
-            self.current_power = self.nom_p + random.uniform(
-                -variation, variation
-            )
+            self.current_power = self.nom_p + random.uniform(-variation, variation)
 
         # Thermal Simulation (Inertia)
         temp_target = self.nom_t + (self.current_power * 2)
@@ -103,17 +99,14 @@ def run():
     # 2. Testament configuration (LWT)
     lwt_payload = json.dumps({"status": "OFFLINE", "msg": "Simulator crash"})
     client.will_set(
-        "datacenter/status/simulator", lwt_payload, qos=1, retain=True
-    )
+        "datacenter/status/simulator", lwt_payload, qos=1, retain=True)
 
     # 3. TLS onfiguration (Security)
     try:
         cert_path = CERT_PATH
-        context = ssl.create_default_context(
-            ssl.Purpose.SERVER_AUTH, cafile=cert_path
-        )
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cert_path)
+        context.check_hostname = True
+        context.verify_mode = ssl.CERT_REQUIRED
 
         client.tls_set_context(context)
         logging.info("✅ TLS configuration loaded successfully.")
