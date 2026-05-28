@@ -26,19 +26,19 @@ services:
       - CONFIG_FILE=${CONFIG_FILE}
       - CERT_PATH=${CERT_PATH}
   
-  edge_computing:
-    build:
-      context: ./edge
-      dockerfile: Dockerfile
-    volumes:
-      - ./certs:/app/certs:ro
-    container_name: subscriber
-    depends_on:
-      - mosquitto
-      - mock-pdu
-    environment:
-      - MQTT_BROKER=${MQTT_BROKER}
-      - MQTT_TOKEN=${MQTT_TOKEN}
-      - MQTT_PORT=${MQTT_PORT}
-      - CONFIG_FILE=${CONFIG_FILE}
-      - CERT_PATH=${CERT_PATH}
+  # edge_computing:
+  #   build:
+  #     context: ./edge
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./certs:/app/certs:ro
+  #   container_name: subscriber
+  #   depends_on:
+  #     - mosquitto
+  #     - mock-pdu
+  #   environment:
+  #     - MQTT_BROKER=${MQTT_BROKER}
+  #     - MQTT_TOKEN=${MQTT_TOKEN}
+  #     - MQTT_PORT=${MQTT_PORT}
+  #     - CONFIG_FILE=${CONFIG_FILE}
+  #     - CERT_PATH=${CERT_PATH}

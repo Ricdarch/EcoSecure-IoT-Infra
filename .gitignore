@@ -7,6 +7,8 @@ certs/*.key
 certs/*.srl
 certs/*.csr
 certs/*.crt
+certs/*.cnf
 
 # Python
 mqtt/
+aiomqtt/

@@ -1,13 +1,57 @@
 #!/usr/bin/env python3
-import random
-import time
+import asyncio
 import json
-import os
-import ssl
 import logging
+import os
+import random
+import ssl
+import time
 from dataclasses import dataclass, field
-import paho.mqtt.client as mqtt
+import aiomqtt
 
+# --- LOGGING ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# --- ENVIRONMENT CONFIGURATION ---
+MQTT_BROKER      = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT        = int(os.getenv("MQTT_PORT", 8883))
+MQTT_TOKEN       = os.getenv("MQTT_TOKEN", "")
+CERT_PATH        = os.getenv("CERT_PATH", "/app/certs/ca.crt")
+DEVICE_COUNT     = int(os.getenv("DEVICE_COUNT", 100))
+PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
+
+# Validate required env vars
+for var in ["MQTT_BROKER", "MQTT_TOKEN", "CERT_PATH"]:
+    if not os.getenv(var):
+        raise EnvironmentError(
+            f"Missing required environment variable: {var}"
+        )
+
+# --- SIMULATION CONFIGURATION ---
+LOCATIONS = [
+    "paris-dc1",
+    "london-dc2",
+    "berlin-dc3",
+    "amsterdam-dc4",
+    "madrid-dc5",
+]
+
+WORKLOAD_TYPES = [
+    "AI_TRAINING_GPU",
+    "WEB_SERVER",
+    "DATABASE",
+    "STORAGE",
+    "NETWORK",
+]
+
+
+# ══════════════════════════════════════════════
+#                   DEVICE CLASS
+# ══════════════════════════════════════════════
 
 @dataclass
 class SmartPDU:
@@ -27,135 +71,171 @@ class SmartPDU:
     current_power: float = field(init=False)
     current_temp: float = field(init=False)
     total_energy_kwh: float = 0.0
-    last_update: float = field(defaut_factory=time.time)
+    last_update: float = field(default_factory=time.time)
 
     def __post_init__(self):
         self.current_power = self.nominal_power
         self.current_temp = self.nominal_temp
 
-    def simulate_behavior(self):
-        """Simulates the physical and network behavior of the PDU"""
+    async def simulate_behavior(self):
+        """Simulates the physical and network behavior of the PDU."""
         if not self.is_connected:
-            if random.random() < 0.01:  # 1% de chance of reconnection
+            if random.random() < 0.01:
                 self.is_connected = True
+                logger.info(f"[{self.name}] Reconnected")
             self.current_power = 0
             return
 
-        if random.random() < 0.001:  # Random network outage
+        if random.random() < 0.001:
             self.is_connected = False
+            logger.warning(f"[{self.name}] Network outage")
             return
 
-        # Malfunction/attack simulation (1% chance)
+        # Cyber attack simulation (1% chance)
         if random.random() < 0.01:
             self.is_under_attack = not self.is_under_attack
 
         if self.is_under_attack:
-            # Attack signature: Power consumption near the critical threshold
-            self.current_power = random.uniform(self.safety_threshold * 0.9, self.maximal_power * 1.1)
+            self.current_power = random.uniform(
+                self.safety_threshold * 0.9,
+                self.maximal_power * 1.1
+            )
         else:
-            # Normal fluctuations depending on the workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
-            self.current_power = self.nominal_power + random.uniform(-variation, variation)
+            self.current_power = self.nominal_power + random.uniform(
+                -variation, variation
+            )
 
-        # Thermal Simulation (Inertia)
+        # Thermal simulation with inertia
         temp_target = self.nominal_temp + (self.current_power * 2)
         self.current_temp += (temp_target - self.current_temp) * 0.1
 
-        # Energy storage
+        # Energy accumulation
         now = time.time()
         interval = (now - self.last_update) / 3600
         self.total_energy_kwh += self.current_power * interval
         self.last_update = now
 
-    def get_payload(self):
+    def get_payload(self) -> dict:
         return {
             "id": self.id,
             "device": self.name,
             "location": self.location,
             "workload": self.workload,
             "metrics": {
-                "power_kw": round(self.current_power, 3),
-                "temp_c": round(self.current_temp, 1),
-                "energy_kwh": round(self.total_energy_kwh, 4)
+                "power_kw":   round(self.current_power, 3),
+                "temp_c":     round(self.current_temp, 1),
+                "energy_kwh": round(self.total_energy_kwh, 4),
             },
             "status": {
-                "connected": self.is_connected,
-                "threat_detected": self.is_under_attack
+                "connected":       self.is_connected,
+                "threat_detected": self.is_under_attack,
             }
         }
 
 
-# --- ENVIRONMENT CONFIGURATION ---
-MQTT_BROKER = os.getenv("MQTT_BROKER")
-MQTT_PORT = int(os.getenv("MQTT_PORT"))
-MQTT_TOKEN = os.getenv("MQTT_TOKEN")
-CONFIG_FILE = os.getenv("CONFIG_FILE")
-CERT_PATH = os.getenv("CERT_PATH")
+# ══════════════════════════════════════════════
+#                  DEVICE GENERATION
+# ══════════════════════════════════════════════
 
-# Client MQTT initialization
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+def generate_pdus(count: int) -> list:
+    """Dynamically generate a fleet of SmartPDU devices."""
+    pdus = []
+    for i in range(count):
+        nominal = random.uniform(1.0, 10.0)
+        pdus.append(SmartPDU(
+            id=i,
+            name=f"pdu-{i:04d}",
+            location=random.choice(LOCATIONS),
+            workload=random.choice(WORKLOAD_TYPES),
+            minimal_power=round(nominal * 0.5, 2),
+            nominal_power=round(nominal, 2),
+            maximal_power=round(nominal * 1.5, 2),
+            safety_threshold=round(nominal * 1.3, 2),
+            nominal_temp=round(random.uniform(20.0, 35.0), 1),
+        ))
+    logger.info(f"Generated {count} SmartPDU devices")
+    return pdus
 
 
-def run():
-    # 1. Authentification configuration
-    client.username_pw_set("token_app", MQTT_TOKEN)
+# ══════════════════════════════════════════════
+#                 ASYNC SIMULATION
+# ══════════════════════════════════════════════
 
-    # 2. Testament configuration (LWT)
-    lwt_payload = json.dumps({"status": "OFFLINE", "msg": "Simulator crash"})
-    client.will_set(
-        "datacenter/status/simulator", lwt_payload, qos=1, retain=True)
+async def simulate_device(pdu: SmartPDU, client: aiomqtt.Client) -> None:
+    """Independent coroutine for each SmartPDU."""
+    while True:
+        await pdu.simulate_behavior()
 
-    # 3. TLS onfiguration (Security)
+        if pdu.is_connected:
+            topic = f"datacenter/{pdu.location}/{pdu.name}/metrics"
+            payload = json.dumps(pdu.get_payload())
+
+            try:
+                await client.publish(topic, payload, qos=1)
+                logger.debug(f"Published → {topic}")
+            except Exception as e:
+                logger.error(f"Publish error [{pdu.name}]: {e}")
+
+        await asyncio.sleep(PUBLISH_INTERVAL)
+
+
+# ══════════════════════════════════════════════
+#                    MAIN
+# ══════════════════════════════════════════════
+
+async def main() -> None:
+    """Main entry point."""
+
+    # Generate devices
+    pdus = generate_pdus(DEVICE_COUNT)
+
+    # TLS configuration
+    tls_context = ssl.create_default_context(
+        ssl.Purpose.SERVER_AUTH,
+        cafile=CERT_PATH
+    )
+    tls_context.check_hostname = True
+    tls_context.verify_mode = ssl.CERT_REQUIRED
+
+    # LWT — Last Will and Testament
+    will = aiomqtt.Will(
+        topic="datacenter/status/simulator",
+        payload=json.dumps({
+            "status": "OFFLINE",
+            "msg": "Simulator crash"
+        }),
+        qos=1,
+        retain=True,
+    )
+
+    logger.info(
+        f"🚀 Connecting to {MQTT_BROKER}:{MQTT_PORT} "
+        f"with {DEVICE_COUNT} devices..."
+    )
+
     try:
-        cert_path = CERT_PATH
-        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cert_path)
-        context.check_hostname = True
-        context.verify_mode = ssl.CERT_REQUIRED
+        async with aiomqtt.Client(
+            hostname=MQTT_BROKER,
+            port=MQTT_PORT,
+            username="token_app",
+            password=MQTT_TOKEN,
+            tls_context=tls_context,
+            will=will,
+        ) as client:
+            logger.info("✅ Connected. Starting simulation...")
 
-        client.tls_set_context(context)
-        logging.info("✅ TLS configuration loaded successfully.")
-    except Exception as e:
-        logging.error(f"TLS config error: {e}")
-        return
+            # Launch one coroutine per device
+            await asyncio.gather(*[
+                simulate_device(pdu, client)
+                for pdu in pdus
+            ])
 
-    # Connection
-    try:
-        client.connect(MQTT_BROKER, MQTT_PORT, 60)
-        client.loop_start()
-    except Exception as e:
-        logging.error(f"Failed to connect to broker: {e}")
-        return
-
-    # Configuration loading
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            config_data = json.load(f)
-    except Exception as e:
-        logging.error(f"Error reading configuration: {e}")
-        return
-
-    pdus = [SmartPDU(d) for d in config_data["devices"]]
-    logging.info(f"🚀 IoT Simulation started. Connected to: {MQTT_BROKER}")
-
-    try:
-        while True:
-            for pdu in pdus:
-                pdu.simulate_behavior()
-
-                loc = pdu.location.lower()
-                name = pdu.name.lower()
-                topic = f"datacenter/{loc}/{name}/metrics"
-                payload = json.dumps(pdu.get_payload())
-
-                client.publish(topic, payload)
-
-            time.sleep(1)
+    except aiomqtt.MqttError as e:
+        logger.error(f"MQTT connection error: {e}")
     except KeyboardInterrupt:
-        logging.info("\nStopping simulator...")
-    finally:
-        client.loop_stop()
-        client.disconnect()
+        logger.info("Simulation stopped by user.")
 
 
 if __name__ == "__main__":
-    run()
+    asyncio.run(main())

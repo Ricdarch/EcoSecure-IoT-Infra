@@ -8,9 +8,11 @@ passwd
 certs/*.key
 certs/*.csr
 certs/*.srl
+certs/*.cnf
 
 # Python files
 mqtt/
+aiomqtt/
 
 # Docs
 docs/
