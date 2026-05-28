@@ -17,11 +17,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # --- ENVIRONMENT CONFIGURATION ---
-MQTT_BROKER      = os.getenv("MQTT_BROKER", "localhost")
-MQTT_PORT        = int(os.getenv("MQTT_PORT", 8883))
-MQTT_TOKEN       = os.getenv("MQTT_TOKEN", "")
-CERT_PATH        = os.getenv("CERT_PATH", "/app/certs/ca.crt")
-DEVICE_COUNT     = int(os.getenv("DEVICE_COUNT", 100))
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
+MQTT_TOKEN = os.getenv("MQTT_TOKEN", "")
+CERT_PATH = os.getenv("CERT_PATH", "/app/certs/ca.crt")
+DEVICE_COUNT = int(os.getenv("DEVICE_COUNT", 100))
 PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
 # Validate required env vars
