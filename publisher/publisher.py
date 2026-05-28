@@ -51,8 +51,7 @@ class SmartPDU:
 
         if self.is_under_attack:
             # Attack signature: Power consumption near the critical threshold
-            self.current_power = random.uniform(self.safety_threshold * 
-            0.9, self.maximal_power * 1.1)
+            self.current_power = random.uniform(self.safety_threshold * 0.9, self.maximal_power * 1.1)
         else:
             # Normal fluctuations depending on the workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
