@@ -5,29 +5,29 @@ import json
 import os
 import ssl
 import logging
+import dataclasses
 import paho.mqtt.client as mqtt
 
 
+@dataclasses
 class SmartPDU:
-    def __init__(self, device_config):
-        # Mapping the JSON configuration
-        self.id = device_config["id"]
-        self.location = device_config["location"]
-        self.name = device_config["target_device"]
-        self.workload = device_config["workload_type"]
-        self.min_p = device_config["min_power"]
-        self.nom_p = device_config["nominal_power"]
-        self.safety = device_config["safety_threshold"]
-        self.max_p = device_config["max_power"]
-        self.nom_t = device_config["nominal_temp"]
+    id: int
+    location: str
+    name: str
+    workload: str
+    minimal_power: float
+    nominal_power: float
+    maximal_power: float
+    safety_threshold: float
+    nominal_temp: float
 
-        # Internal state
-        self.is_connected = True
-        self.is_under_attack = False
-        self.current_power = self.nom_p
-        self.current_temp = self.nom_t
-        self.total_energy_kwh = 0.0
-        self.last_update = time.time()
+    # Internal state
+    is_connected: bool = True
+    is_under_attack: bool = False
+    current_power: float = nominal_power
+    current_temp: float = nominal_temp
+    total_energy_kwh: float = 0.0
+    last_update: float = time.time()
 
     def simulate_behavior(self):
         """Simulates the physical and network behavior of the PDU"""
@@ -47,14 +47,14 @@ class SmartPDU:
 
         if self.is_under_attack:
             # Attack signature: Power consumption near the critical threshold
-            self.current_power = random.uniform(self.safety * 0.9, self.max_p * 1.1)
+            self.current_power = random.uniform(self.safety_threshold * 0.9, self.maximal_power * 1.1)
         else:
             # Normal fluctuations depending on the workload
             variation = 0.5 if self.workload == "AI_TRAINING_GPU" else 0.1
-            self.current_power = self.nom_p + random.uniform(-variation, variation)
+            self.current_power = self.nominal_power + random.uniform(-variation, variation)
 
         # Thermal Simulation (Inertia)
-        temp_target = self.nom_t + (self.current_power * 2)
+        temp_target = self.nominal_temp + (self.current_power * 2)
         self.current_temp += (temp_target - self.current_temp) * 0.1
 
         # Energy storage
