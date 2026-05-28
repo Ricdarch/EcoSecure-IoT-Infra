@@ -23,7 +23,6 @@ services:
       - MQTT_BROKER=${MQTT_BROKER}
       - MQTT_TOKEN=${MQTT_TOKEN}
       - MQTT_PORT=${MQTT_PORT}
-      - CONFIG_FILE=${CONFIG_FILE}
       - CERT_PATH=${CERT_PATH}
   
   # edge_computing:
@@ -40,5 +39,4 @@ services:
   #     - MQTT_BROKER=${MQTT_BROKER}
   #     - MQTT_TOKEN=${MQTT_TOKEN}
   #     - MQTT_PORT=${MQTT_PORT}
-  #     - CONFIG_FILE=${CONFIG_FILE}
   #     - CERT_PATH=${CERT_PATH}
