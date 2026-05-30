@@ -17,10 +17,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # --- ENVIRONMENT CONFIGURATION ---
-MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_BROKER = os.getenv("MQTT_BROKER")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
-MQTT_TOKEN = os.getenv("MQTT_TOKEN", "")
-CERT_PATH = os.getenv("CERT_PATH", "/app/certs/ca.crt")
+USERNAME = os.getenv("USERNAME")
+MQTT_TOKEN = os.getenv("MQTT_TOKEN")
+CERT_PATH = os.getenv("CERT_PATH")
 DEVICE_COUNT = int(os.getenv("DEVICE_COUNT", 100))
 PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
@@ -218,7 +219,7 @@ async def main() -> None:
         async with aiomqtt.Client(
             hostname=MQTT_BROKER,
             port=MQTT_PORT,
-            username="token_app",
+            username=USERNAME,
             password=MQTT_TOKEN,
             tls_context=tls_context,
             will=will,

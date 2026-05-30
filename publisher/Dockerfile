@@ -10,6 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV MQTT_BROKER=localhost MQTT_PORT=8883 CONFIG_FILE=devices_config.json PYTHONUNBUFFERED=1
+ENV MQTT_BROKER=localhost MQTT_PORT=8883 PYTHONUNBUFFERED=1
 
 CMD ["python", "publisher.py"]
