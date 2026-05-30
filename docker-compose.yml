@@ -15,7 +15,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./certs:/app/certs:ro
-      - ./publisher/devices_config.json:/app/devices_config.json:ro
     container_name: publisher
     depends_on:
       - mosquitto
