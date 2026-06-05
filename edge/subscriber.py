@@ -10,8 +10,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # --- ENVIRONMENT CONFIGURATION ---
 MQTT_BROKER = os.getenv("MQTT_BROKER")
 MQTT_PORT = int(os.getenv("MQTT_PORT"))
+USERNAME = os.getenv("USERNAME")
 MQTT_TOKEN = os.getenv("MQTT_TOKEN")
 CERT_PATH = os.getenv("CERT_PATH")
+DEVICE_COUNT = int(os.getenv("DEVICE_COUNT", 100))
+PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
 # Decision threshold (Edge computing)
 TEMP_CRITIQUE = 45.0  # On alerte si > 45°C
