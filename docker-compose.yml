@@ -50,6 +50,7 @@ services:
       - publisher
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
+      - USERNAME=${USERNAME}
       - MQTT_TOKEN=${MQTT_TOKEN}
       - MQTT_PORT=${MQTT_PORT}
       - CERT_PATH=${CERT_PATH}
