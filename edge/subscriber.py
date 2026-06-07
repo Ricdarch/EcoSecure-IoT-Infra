@@ -15,11 +15,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # --- ENVIRONMENT CONFIGURATION ---
-MQTT_BROKER    = os.getenv("MQTT_BROKER",)
-MQTT_PORT      = int(os.getenv("MQTT_PORT"))
-USERNAME       = os.getenv("USERNAME")
-MQTT_TOKEN     = os.getenv("MQTT_TOKEN")
-CERT_PATH      = os.getenv("CERT_PATH")
+MQTT_BROKER = os.getenv("MQTT_BROKER",)
+MQTT_PORT = int(os.getenv("MQTT_PORT"))
+USERNAME = os.getenv("USERNAME")
+MQTT_TOKEN = os.getenv("MQTT_TOKEN")
+CERT_PATH = os.getenv("CERT_PATH")
 
 # Validate required env vars
 for var in ["MQTT_BROKER", "MQTT_TOKEN", "CERT_PATH"]:
@@ -29,9 +29,9 @@ for var in ["MQTT_BROKER", "MQTT_TOKEN", "CERT_PATH"]:
         )
 
 # --- EDGE FILTERING THRESHOLDS ---
-TEMP_CRITICAL   = float(os.getenv("TEMP_CRITICAL", 45.0))
+TEMP_CRITICAL = float(os.getenv("TEMP_CRITICAL", 45.0))
 POWER_THRESHOLD = float(os.getenv("POWER_THRESHOLD", 0.8))
-CPU_THRESHOLD   = float(os.getenv("CPU_THRESHOLD", 85.0))
+CPU_THRESHOLD = float(os.getenv("CPU_THRESHOLD", 85.0))
 
 
 # ══════════════════════════════════════════════
@@ -45,7 +45,7 @@ def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
     Only urgent events are forwarded to the cloud.
     """
     metrics = payload.get("metrics", {})
-    status  = payload.get("status", {})
+    status = payload.get("status", {})
     reasons = []
 
     # Rule 1 — Cyber threat detected by the device
@@ -58,7 +58,7 @@ def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
         reasons.append(f"OVERHEAT({temp}°C > {TEMP_CRITICAL}°C)")
 
     # Rule 3 — Power consumption exceeds safety threshold
-    power   = metrics.get("power_kw", 0)
+    power = metrics.get("power_kw", 0)
     nominal = payload.get("nominal_power", 0)
     if nominal > 0 and power > nominal * (1 + POWER_THRESHOLD):
         reasons.append(f"POWER_SPIKE({power}kW)")
@@ -82,9 +82,9 @@ async def process_message(message: aiomqtt.Message) -> None:
     """
     try:
         # 1. Decode incoming MQTT message
-        payload   = json.loads(message.payload.decode())
+        payload = json.loads(message.payload.decode())
         device_id = payload.get("id", "unknown")
-        topic     = message.topic
+        topic = message.topic
 
         # 2. Apply edge filtering logic
         is_urgent, reasons = should_forward_to_cloud(payload)
@@ -124,7 +124,7 @@ async def main() -> None:
         cafile=CERT_PATH
     )
     tls_context.check_hostname = True
-    tls_context.verify_mode    = ssl.CERT_REQUIRED
+    tls_context.verify_mode = ssl.CERT_REQUIRED
 
     # LWT — Last Will and Testament
     will = aiomqtt.Will(
