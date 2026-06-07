@@ -22,7 +22,7 @@ MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
 USERNAME = os.getenv("USERNAME")
 MQTT_TOKEN = os.getenv("MQTT_TOKEN")
 CERT_PATH = os.getenv("CERT_PATH")
-DEVICE_COUNT = int(os.getenv("DEVICE_COUNT", 100))
+DEVICES_COUNT = int(os.getenv("DEVICES_COUNT", 100))
 PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
 # Validate required env vars
@@ -34,11 +34,11 @@ for var in ["MQTT_BROKER", "MQTT_TOKEN", "CERT_PATH"]:
 
 # --- SIMULATION CONFIGURATION ---
 LOCATIONS = [
-    "paris-dc1",
-    "london-dc2",
-    "berlin-dc3",
-    "amsterdam-dc4",
-    "madrid-dc5",
+    "Paris-DC1",
+    "London-DC2",
+    "Berlin-DC3",
+    "Amsterdam-DC4",
+    "Madrid-DC5",
 ]
 
 WORKLOAD_TYPES = [
@@ -51,7 +51,7 @@ WORKLOAD_TYPES = [
 
 
 # ══════════════════════════════════════════════
-#                   DEVICE CLASS
+#                   DEVICES CLASS
 # ══════════════════════════════════════════════
 
 @dataclass
@@ -136,7 +136,7 @@ class SmartPDU:
 
 
 # ══════════════════════════════════════════════
-#                  DEVICE GENERATION
+#                  DEVICES GENERATION
 # ══════════════════════════════════════════════
 
 def generate_pdus(count: int) -> list:
@@ -189,7 +189,7 @@ async def main() -> None:
     """Main entry point."""
 
     # Generate devices
-    pdus = generate_pdus(DEVICE_COUNT)
+    pdus = generate_pdus(DEVICES_COUNT)
 
     # TLS configuration
     tls_context = ssl.create_default_context(
@@ -212,7 +212,7 @@ async def main() -> None:
 
     logger.info(
         f"🚀 Connecting to {MQTT_BROKER}:{MQTT_PORT} "
-        f"with {DEVICE_COUNT} devices..."
+        f"with {DEVICES_COUNT} devices..."
     )
 
     try:

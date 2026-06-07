@@ -1,3 +1,13 @@
+secrets:
+  ca_cert:
+    file: ./certs/ca.crt
+  server_cert:
+    file: ./certs/server.crt
+  server_key:
+    file: ./certs/server.key
+  mqtt_passwd:
+    file: ./passwd
+
 services:
   mosquitto:
     image: eclipse-mosquitto:2.0.18
@@ -6,36 +16,46 @@ services:
       - "8883:8883"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./passwd:/mosquitto/config/passwd
-      - ./certs:/mosquitto/config/certs
+    secrets:
+      - ca_cert  # Check client
+      - server_cert  # Certificate
+      - server_key  # Private key
+      - mqtt_passwd  # Authentification
 
-  mock-pdu:
+  publisher:
     build:
       context: ./publisher
       dockerfile: Dockerfile
-    volumes:
-      - ./certs:/app/certs:ro
     container_name: publisher
     depends_on:
       - mosquitto
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
+      - USERNAME=${USERNAME}
       - MQTT_TOKEN=${MQTT_TOKEN}
       - MQTT_PORT=${MQTT_PORT}
       - CERT_PATH=${CERT_PATH}
+      - DEVICES_COUNT=${DEVICES_COUNT}
+      - PUBLISH_INTERVAL=${PUBLISH_INTERVAL}
+    secrets:
+      - ca_cert  # Check mosquitto
   
-  # edge_computing:
-  #   build:
-  #     context: ./edge
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./certs:/app/certs:ro
-  #   container_name: subscriber
-  #   depends_on:
-  #     - mosquitto
-  #     - mock-pdu
-  #   environment:
-  #     - MQTT_BROKER=${MQTT_BROKER}
-  #     - MQTT_TOKEN=${MQTT_TOKEN}
-  #     - MQTT_PORT=${MQTT_PORT}
-  #     - CERT_PATH=${CERT_PATH}
+  edge_computing:
+    build:
+      context: ./edge
+      dockerfile: Dockerfile
+    container_name: subscriber
+    depends_on:
+      - mosquitto
+      - publisher
+    environment:
+      - MQTT_BROKER=${MQTT_BROKER}
+      - USERNAME=${USERNAME}
+      - MQTT_TOKEN=${MQTT_TOKEN}
+      - MQTT_PORT=${MQTT_PORT}
+      - CERT_PATH=${CERT_PATH}
+      - TEMP_CRITICAL=${TEMP_CRITICAL}
+      - POWER_THRESHOLD=${POWER_THRESHOLD}
+      - CPU_THRESHOLD=${CPU_THRESHOLD}
+    secrets:
+      - ca_cert  # Check mosquitto

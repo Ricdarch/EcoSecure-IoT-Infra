@@ -1,88 +1,180 @@
-import paho.mqtt.client as mqtt
+#!/usr/bin/env python3
+import asyncio
 import json
+import logging
 import os
 import ssl
-import logging
+import aiomqtt
 
-# Logger configuration
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# --- LOGGING ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # --- ENVIRONMENT CONFIGURATION ---
-MQTT_BROKER = os.getenv("MQTT_BROKER")
+MQTT_BROKER = os.getenv("MQTT_BROKER",)
 MQTT_PORT = int(os.getenv("MQTT_PORT"))
 USERNAME = os.getenv("USERNAME")
 MQTT_TOKEN = os.getenv("MQTT_TOKEN")
 CERT_PATH = os.getenv("CERT_PATH")
-DEVICE_COUNT = int(os.getenv("DEVICE_COUNT", 100))
-PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
-# Decision threshold (Edge computing)
-TEMP_CRITIQUE = 45.0  # On alerte si > 45°C
-POWER_THRESHOLD = 0.8  # On alerte si la conso varie brusquement
+# Validate required env vars
+for var in ["MQTT_BROKER", "MQTT_TOKEN", "CERT_PATH"]:
+    if not os.getenv(var):
+        raise EnvironmentError(
+            f"Missing required environment variable: {var}"
+        )
 
-
-def on_connect(client, userdata, flags, reason_code, properties):
-    if reason_code == 0:
-        logging.info("✅ Edge Gateway operational. Listening to local stream...")
-        # Subscribe to all topics
-        client.subscribe("datacenter/#")
-    else:
-        logging.error(f"❌ Connection error : {reason_code}")
+# --- EDGE FILTERING THRESHOLDS ---
+TEMP_CRITICAL = float(os.getenv("TEMP_CRITICAL", 45.0))
+POWER_THRESHOLD = float(os.getenv("POWER_THRESHOLD", 0.8))
+CPU_THRESHOLD = float(os.getenv("CPU_THRESHOLD", 85.0))
 
 
-def on_message(client, userdata, msg):
+# ══════════════════════════════════════════════
+# FILTERING LOGIC
+# ══════════════════════════════════════════════
+
+def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
+    """
+    Core edge filtering logic.
+    Returns (is_urgent, reasons).
+    Only urgent events are forwarded to the cloud.
+    """
+    metrics = payload.get("metrics", {})
+    status = payload.get("status", {})
+    reasons = []
+
+    # Rule 1 — Cyber threat detected by the device
+    if status.get("threat_detected"):
+        reasons.append("CYBER_THREAT")
+
+    # Rule 2 — Temperature exceeds critical threshold
+    temp = metrics.get("temp_c")
+    if temp is not None and temp > TEMP_CRITICAL:
+        reasons.append(f"OVERHEAT({temp}°C > {TEMP_CRITICAL}°C)")
+
+    # Rule 3 — Power consumption exceeds safety threshold
+    power = metrics.get("power_kw", 0)
+    nominal = payload.get("nominal_power", 0)
+    if nominal > 0 and power > nominal * (1 + POWER_THRESHOLD):
+        reasons.append(f"POWER_SPIKE({power}kW)")
+
+    # Rule 4 — Camera CPU overload
+    cpu = metrics.get("cpu_usage")
+    if cpu is not None and cpu > CPU_THRESHOLD:
+        reasons.append(f"CPU_OVERLOAD({cpu}%)")
+
+    return len(reasons) > 0, reasons
+
+
+# ══════════════════════════════════════════════
+# MESSAGE PROCESSING
+# ══════════════════════════════════════════════
+
+async def process_message(message: aiomqtt.Message) -> None:
+    """
+    Process a single MQTT message.
+    Apply filtering logic and forward to cloud if urgent.
+    """
     try:
-        # 1. Reception and decoding
-        payload = json.loads(msg.payload.decode())
-        device_id = payload.get("id")
-        metrics = payload.get("metrics", {})
-        status = payload.get("status", {})
+        # 1. Decode incoming MQTT message
+        payload = json.loads(message.payload.decode())
+        device_id = payload.get("id", "unknown")
+        topic = message.topic
 
-        # 2. Filtrering logic (Decision Making)
-        is_urgent = False
-        reasons = []
+        # 2. Apply edge filtering logic
+        is_urgent, reasons = should_forward_to_cloud(payload)
 
-        # Test A: Threat detected by the PDU itself
-        if status.get("threat_detected"):
-            is_urgent = True
-            reasons.append("CYBER_THREAT")
-
-        # Test B : Temperature exceeds the threshold configured on the Edge
-        if metrics.get("temp_c", 0) > TEMP_CRITIQUE:
-            is_urgent = True
-            reasons.append(f"OVERHEAT({metrics['temp_c']}°C)")
-
-        # 3. Edge computing action
+        # 3. Edge action
         if is_urgent:
-            logging.warning(
-                f"[CLOUD ALERT PDU: {device_id} | "
-                f"Raisons: {reasons}")
-            # Later, you'll put this here: cloud_client.publish(...)
+            logger.warning(
+                f"[CLOUD ALERT] Device: {device_id} | "
+                f"Topic: {topic} | "
+                f"Reasons: {reasons}"
+            )
+            # TODO — Phase 2: forward to Kafka
+            # await kafka_producer.send("iot.alerts", payload)
+
         else:
-            # Edge computing retains the normal data
-            logging.info(f"[LOG LOCAL] {device_id}: Temp={metrics['temp_c']}°C - OK")
+            logger.info(
+                f"[LOCAL LOG] Device: {device_id} | "
+                f"Topic: {topic} | OK"
+            )
 
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON on {message.topic}: {e}")
     except Exception as e:
-        logging.error(f"⚠️ Erreur analyse message : {e}")
+        logger.error(f"Unexpected error processing message: {e}")
 
 
-# --- INITIALIZATION ---
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-client.on_connect = on_connect
-client.on_message = on_message
+# ══════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════
 
-# Authentification and TLS
-client.username_pw_set("token_app", MQTT_TOKEN)
-context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=CERT_PATH)
-context.check_hostname = False
-context.verify_mode = ssl.CERT_NONE
-client.tls_set_context(context)
+async def main() -> None:
+    """Main entry point."""
 
-try:
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
-    client.loop_forever()
-except KeyboardInterrupt:
-    logging.info("Stopping Edge Gateway.")
-finally:
-    client.loop_stop()
-    client.disconnect()
+    # TLS configuration
+    tls_context = ssl.create_default_context(
+        ssl.Purpose.SERVER_AUTH,
+        cafile=CERT_PATH
+    )
+    tls_context.check_hostname = True
+    tls_context.verify_mode = ssl.CERT_REQUIRED
+
+    # LWT — Last Will and Testament
+    will = aiomqtt.Will(
+        topic="datacenter/status/edge-gateway",
+        payload=json.dumps({
+            "status": "OFFLINE",
+            "msg":    "Edge Gateway disconnected unexpectedly"
+        }),
+        qos=1,
+        retain=True,
+    )
+
+    logger.info(f"🚀 Connecting to {MQTT_BROKER}:{MQTT_PORT}...")
+
+    # Reconnection loop — si le broker tombe, on reconnecte
+    reconnect_interval = 5
+
+    while True:
+        try:
+            async with aiomqtt.Client(
+                hostname=MQTT_BROKER,
+                port=MQTT_PORT,
+                username=USERNAME,
+                password=MQTT_TOKEN,
+                tls_context=tls_context,
+                will=will,
+            ) as client:
+
+                logger.info(
+                    f"✅ Edge Gateway connected to {MQTT_BROKER}:{MQTT_PORT}"
+                )
+
+                # Subscribe to all datacenter topics
+                await client.subscribe("datacenter/#", qos=1)
+                logger.info("Subscribed to datacenter/#")
+
+                # Process messages as they arrive
+                async for message in client.messages:
+                    await process_message(message)
+
+        except aiomqtt.MqttError as e:
+            logger.warning(
+                f"Connection lost: {e}. "
+                f"Reconnecting in {reconnect_interval}s..."
+            )
+            await asyncio.sleep(reconnect_interval)
+
+        except KeyboardInterrupt:
+            logger.info("Edge Gateway stopped by user.")
+            break
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

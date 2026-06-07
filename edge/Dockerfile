@@ -10,4 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+ENV MQTT_BROKER=mosquitto \
+    MQTT_PORT=8883 
+
 CMD ["python", "subscriber.py"]
