@@ -1,24 +1,25 @@
 # ADR-002 — Removal of the API between the publisher and the broker
 
 ## Context
-In the initial design, I envisioned a REST API between the mock publisher and the MQTT broker to manage communication between the two.
+The initial design included a REST API between the mock publisher and the MQTT broker to manage their communication.
 
-## Initial Idea
+## Initial Design
 Publisher → REST API → MQTT Broker
 
-## Why I abandoned this idea
-As I analyzed the role of each component, I realized that MQTT is itself a communication protocol; adding an API between the two would have amounted to unnecessarily duplicating that responsibility.
+## Rationale for Abandoning the API
+Upon review, it became clear that MQTT already serves as a communication protocol. Introducing an additional API would have duplicated responsibilities without providing real benefits.
 
 The API would have introduced:
+
 - Additional latency
-- Another point of failure
-- Complexity with no added value
+- Another potential point of failure
+- Unnecessary complexity
 
 ## Final Decision
 Publisher → Direct MQTT → Broker
 
-## What I Learned
-A good distributed system minimizes unnecessary intermediaries. Each component must have a clear and single responsibility (Single Responsibility Principle).
+## Lessons Learned
+A well-designed distributed system minimizes unnecessary intermediaries. Each component should have a clear, single responsibility, in line with the Single Responsibility Principle.
 
 ## Status
-✅ Decision approved and implemented
+✅ Approved and implemented

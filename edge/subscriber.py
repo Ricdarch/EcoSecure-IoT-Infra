@@ -34,7 +34,7 @@ CPU_THRESHOLD = float(os.getenv("CPU_THRESHOLD", 85.0))
 
 
 # ══════════════════════════════════════════════
-# FILTERING LOGIC
+#               FILTERING LOGIC
 # ══════════════════════════════════════════════
 
 def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
@@ -71,7 +71,7 @@ def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
 
 
 # ══════════════════════════════════════════════
-# MESSAGE PROCESSING
+#               MESSAGE PROCESSING
 # ══════════════════════════════════════════════
 
 async def process_message(message: aiomqtt.Message) -> None:
@@ -111,7 +111,7 @@ async def process_message(message: aiomqtt.Message) -> None:
 
 
 # ══════════════════════════════════════════════
-# MAIN
+#                       MAIN
 # ══════════════════════════════════════════════
 
 async def main() -> None:

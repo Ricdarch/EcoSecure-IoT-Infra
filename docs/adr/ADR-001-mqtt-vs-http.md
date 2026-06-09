@@ -1,24 +1,23 @@
 # ADR-001 — Choosing MQTT over HTTP
 
 ## Context
-I had to choose a communication protocol between the mock publisher, the broker, and the subscriber.
+A decision was needed regarding the communication protocol between the mock publisher, the broker, and the subscriber.
 
 ## Options Considered
-- HTTP REST — simple but too verbose for IoT
-- WebSocket — bidirectional but complex to manage
-- MQTT — lightweight, publish/subscribe, IoT standard
+- HTTP REST — simple but too verbose for IoT scenarios.
+- WebSocket — supports bidirectional communication but adds complexity.
+- MQTT — lightweight, publish/subscribe model, widely adopted in IoT.
 
 ## Decision
-I decided to choose the MQTT protocol.
+MQTT was chosen as the communication protocol.
 
 ## Reasons
-- Industry-standard IoT protocol
-- Lightweight — ideal for devices with limited resources
-- The pub/sub model makes it easy to connect 
-  new components without modifying existing ones
+- Industry-standard protocol for IoT devices.
+- Lightweight and suitable for devices with limited resources.
+- Publish/subscribe model enables easy integration of new components without modifying existing ones.
 
 ## Consequences
-- Requires a broker (containerized Mosquitto)
+Requires deployment of a broker (e.g., containerized Mosquitto).
 
 ## Statut
 ✅ Implemented
