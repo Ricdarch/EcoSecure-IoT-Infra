@@ -49,87 +49,53 @@ With thousands of sensors running 24/7 in a factory or across a smart home fleet
 
 ### High-Level Overview
 
-┌─────────────────────────────────────────────────────────────────┐
-│                   IoT DEVICES LAYER                             │
-│              (Simulated Datacenter — on-premise VM)             │
-│                                                                 │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │           SmartPDU Async Publisher (Python)             │   │
-│   │                                                         │   │
-│   │  • Thousands of concurrent virtual devices (asyncio)    │   │
-│   │  • Power consumption, temperature, energy tracking      │   │
-│   │  • Cyber threat simulation (1% attack probability)      │   │
-│   │  • Realistic thermal inertia simulation                 │   │
-│   │  • Workloads: AI_GPU, WEB_SERVER, DATABASE, STORAGE     │   │
-│   │  • Locations: Paris-DC1, London-DC2, Berlin-DC3...      │   │
-│   └────────────────────────┬────────────────────────────────┘   │
-│                            │ MQTT publish                       │
-│                            │Topic: datacenter/{loc}/{name}/metri|cs
-│                            │ QoS 1 — TLS port 8883              │
-└────────────────────────────┼────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      BROKER LAYER                               │
-│                                                                 │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │              Eclipse Mosquitto 2.0                      │   │
-│   │               (Docker — port 8883)                      │   │
-│   │                                                         │   │
-│   │  • TLS encryption (server certificates)                 │   │
-│   │  • Token-based authentication (passwd file)             │   │
-│   │  • Last Will and Testament (LWT) support                │   │
-│   │  • Routes messages to all subscribers                   │   │
-│   └────────────────────────┬────────────────────────────────┘   │
-└────────────────────────────┼────────────────────────────────────┘
-                             │ MQTT subscribe
-                             │ Topic: datacenter/#
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      EDGE NODE LAYER                            │
-│              (on-premise VM — K3s planned)                      │
-│                                                                 │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │              Edge Gateway (Python asyncio)              │   │
-│   │                                                         │   │
-│   │  FILTERING RULES                                        │   │
-│   │  ┌───────────────────────────────────────────────────┐  │   │
-│   │  │ Rule 1 — CYBER_THREAT   : threat_detected == True │  │   │
-│   │  │ Rule 2 — OVERHEAT       : temp_c > 45.0°C         │  │   │
-│   │  │ Rule 3 — POWER_SPIKE    : power > nominal * 1.8   │  │   │
-│   │  │ Rule 4 — CPU_OVERLOAD   : cpu_usage > 85%         │  │   │
-│   │  └───────────────────────────────────────────────────┘  │   │
-│   │                                                         │   │
-│   │  URGENT  → Forward to cloud (Kafka — planned)           │   │
-│   │  NORMAL  → Log locally only (filtered out)              │   │
-│   │                                                         │   │
-│   │  Auto-reconnect on broker failure                       │   │
-│   │  LWT published on unexpected disconnect                 │   │
-│   └─────────────────────────────────────────────────────────┘   │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ Critical events only
-                           │ VPN IPSec + mTLS (planned)
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      AWS CLOUD LAYER                            │
-│              (Terraform + Ansible — planned)                    │
-│                                                                 │
-│   ┌──────────────┐    ┌──────────────────────┐                  │
-│   │ AWS IoT Core │───▶ Timestream InfluxDB  
-│   │ (Ingestion)  │    │ (Time-series storage)│                  │
-│   └──────────────┘    └──────────────────────┘                  │
-│                                                                 │
-│   ┌──────────────┐    ┌──────────────┐                          │
-│   │  CloudWatch  │    │   Grafana    │                          │
-│   │  (Alerting)  │    │  (Dashboards)│                          │
-│   └──────────────┘    └──────────────┘                          │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph SIM["🖥️ IoT DEVICES LAYER — On-premise VM"]
+        PUB["SmartPDU Async Publisher\nPython asyncio\n━━━━━━━━━━━━━━━━━━━━━━\n• Thousands of concurrent devices\n• Power, temperature, energy tracking\n• Cyber threat simulation 1%\n• Workloads: AI_GPU, WEB_SERVER, DB\n• Locations: Paris-DC1, London-DC2..."]
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│                        CI/CD LAYER                              │
-│                      (GitHub Actions)                           │
-│                                                                 │
-│   Push → Lint (flake8) → Gitleaks → Docker Build → Trivy        │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph BROKER["📡 BROKER LAYER — Docker"]
+        MOS["Eclipse Mosquitto 2.0\nport 8883\n━━━━━━━━━━━━━━━━━━━━━━\n• TLS encryption\n• Token-based authentication\n• Last Will and Testament LWT\n• Routes messages to subscribers"]
+    end
 
-Legend:  ✅ Implemented   🔄 In progress   📋 Planned
+    subgraph EDGE["⚡ EDGE NODE LAYER — On-premise VM"]
+        GW["Edge Gateway\nPython asyncio\n━━━━━━━━━━━━━━━━━━━━━━\nRule 1 — CYBER_THREAT: threat_detected\nRule 2 — OVERHEAT: temp_c > 45°C\nRule 3 — POWER_SPIKE: power > nominal x1.8\nRule 4 — CPU_OVERLOAD: cpu > 85%"]
+        LOCAL["🔵 NORMAL\nLog locally only"]
+        ALERT["🔴 URGENT\nForward to cloud"]
+    end
+
+    subgraph KAFKA["📨 EVENT STREAMING — K3s planned"]
+        KF["Apache Kafka\nStrimzi Operator\n━━━━━━━━━━━━━━━━━━━━━━\nTopic: iot.alerts\nTopic: iot.telemetry\nBackpressure management"]
+    end
+
+    subgraph AWS["☁️ AWS CLOUD LAYER — Terraform + Ansible planned"]
+        IOT["AWS IoT Core\nIngestion"]
+        TS["Timestream InfluxDB\nTime-series storage"]
+        CW["CloudWatch\nAlerting"]
+        GF["Grafana\nDashboards"]
+    end
+
+    subgraph CI["🔄 CI/CD — GitHub Actions"]
+        PIPE["Push → Lint → Gitleaks → Docker Build → Trivy"]
+    end
+
+    PUB -->|"MQTT over TLS QoS 1\ndatacenter/{loc}/{name}/metrics"| MOS
+    MOS -->|"Subscribe datacenter/#"| GW
+    GW -->|Normal data| LOCAL
+    GW -->|Critical events| ALERT
+    ALERT -->|"aiokafka producer — planned"| KF
+    KF -->|"Kafka consumer — planned"| IOT
+    IOT --> TS
+    IOT --> CW
+    TS --> GF
+
+    style SIM fill:#1e3a5f,color:#fff,stroke:#2e6da4
+    style BROKER fill:#1e3a5f,color:#fff,stroke:#2e6da4
+    style EDGE fill:#1e3a5f,color:#fff,stroke:#2e6da4
+    style KAFKA fill:#2d4a1e,color:#fff,stroke:#4a7a2e
+    style AWS fill:#5f3a1e,color:#fff,stroke:#a45a2e
+    style CI fill:#3a1e5f,color:#fff,stroke:#6a2ea4
+    style LOCAL fill:#1a4a2e,color:#fff
+    style ALERT fill:#4a1e1e,color:#fff
+```
