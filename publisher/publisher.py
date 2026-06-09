@@ -10,10 +10,7 @@ from dataclasses import dataclass, field
 import aiomqtt
 
 # --- LOGGING ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # --- ENVIRONMENT CONFIGURATION ---
@@ -124,8 +121,8 @@ class SmartPDU:
             "location": self.location,
             "workload": self.workload,
             "metrics": {
-                "power_kw":   round(self.current_power, 3),
-                "temp_c":     round(self.current_temp, 1),
+                "power_kw": round(self.current_power, 3),
+                "temp_c": round(self.current_temp, 1),
                 "energy_kwh": round(self.total_energy_kwh, 4),
             },
             "status": {
@@ -174,7 +171,7 @@ async def simulate_device(pdu: SmartPDU, client: aiomqtt.Client) -> None:
 
             try:
                 await client.publish(topic, payload, qos=1)
-                logger.debug(f"Published → {topic}")
+                logger.info(f"Published → {topic}")
             except Exception as e:
                 logger.error(f"Publish error [{pdu.name}]: {e}")
 
