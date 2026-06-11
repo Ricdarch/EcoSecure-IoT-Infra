@@ -51,7 +51,7 @@ With thousands of sensors running 24/7 in a factory or across a smart home fleet
 
 ```mermaid
 flowchart TD
-    subgraph SIM["🖥️ IoT DEVICES LAYER — On-premise VM"]
+    subgraph SIM["🖥️ IoT DEVICES LAYER — On-premise"]
         PUB["SmartPDU Async Publisher\nPython asyncio\n━━━━━━━━━━━━━━━━━━━━━━\n• Thousands of concurrent devices\n• Power, temperature, energy tracking\n• Cyber threat simulation 1%\n• Workloads: AI_GPU, WEB_SERVER, DB\n• Locations: Paris-DC1, London-DC2..."]
     end
 
@@ -59,7 +59,7 @@ flowchart TD
         MOS["Eclipse Mosquitto 2.0\nport 8883\n━━━━━━━━━━━━━━━━━━━━━━\n• TLS encryption\n• Token-based authentication\n• Last Will and Testament LWT\n• Routes messages to subscribers"]
     end
 
-    subgraph EDGE["⚡ EDGE NODE LAYER — On-premise VM"]
+    subgraph EDGE["⚡ EDGE NODE LAYER — On-premise"]
         GW["Edge Gateway\nPython asyncio\n━━━━━━━━━━━━━━━━━━━━━━\nRule 1 — CYBER_THREAT: threat_detected\nRule 2 — OVERHEAT: temp_c > 45°C\nRule 3 — POWER_SPIKE: power > nominal x1.8\nRule 4 — CPU_OVERLOAD: cpu > 85%"]
         LOCAL["🔵 NORMAL\nLog locally only"]
         ALERT["🔴 URGENT\nForward to cloud"]

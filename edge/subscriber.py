@@ -38,11 +38,6 @@ CPU_THRESHOLD = float(os.getenv("CPU_THRESHOLD", 85.0))
 # ══════════════════════════════════════════════
 
 def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
-    """
-    Core edge filtering logic.
-    Returns (is_urgent, reasons).
-    Only urgent events are forwarded to the cloud.
-    """
     metrics = payload.get("metrics", {})
     status = payload.get("status", {})
     reasons = []
@@ -62,11 +57,6 @@ def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
     if nominal > 0 and power > nominal * (1 + POWER_THRESHOLD):
         reasons.append(f"POWER_SPIKE({power}kW)")
 
-    # Rule 4 — Camera CPU overload
-    cpu = metrics.get("cpu_usage")
-    if cpu is not None and cpu > CPU_THRESHOLD:
-        reasons.append(f"CPU_OVERLOAD({cpu}%)")
-
     return len(reasons) > 0, reasons
 
 
@@ -75,10 +65,6 @@ def should_forward_to_cloud(payload: dict) -> tuple[bool, list[str]]:
 # ══════════════════════════════════════════════
 
 async def process_message(message: aiomqtt.Message) -> None:
-    """
-    Process a single MQTT message.
-    Apply filtering logic and forward to cloud if urgent.
-    """
     try:
         # 1. Decode incoming MQTT message
         payload = json.loads(message.payload.decode())
