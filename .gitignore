@@ -4,7 +4,14 @@ passwd
 
 # Certificats
 certs/
+*.crt
+*.key
+*.csr
 
 # Python
 mqtt/
 aiomqtt/
+
+# Registry
+auth/
+config.yaml
